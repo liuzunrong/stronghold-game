@@ -14,14 +14,15 @@ let pending=false,timer;
 async function connect(){
   if(pending)return;pending=true;clearTimeout(timer);message.textContent='正在连接游戏服务器…';
   try{
-    const endpoint=new URL('https://raw.githubusercontent.com/liuzunrong/stronghold-game/main/server.json');
+    const endpoint=new URL('https://api.github.com/repos/liuzunrong/stronghold-game/contents/server.json');
+    endpoint.searchParams.set('ref','main');
     endpoint.searchParams.set('v',Date.now().toString());
-    const response=await fetch(endpoint,{cache:'no-store',signal:AbortSignal.timeout(15000)});
+    const response=await fetch(endpoint,{headers:{Accept:'application/vnd.github.raw+json'},cache:'no-store',signal:AbortSignal.timeout(15000)});
     if(!response.ok)throw new Error('offline');
     const data=await response.json(),url=new URL(data.url);
     if(url.protocol!=='https:'||!/^[-a-z0-9]+\.trycloudflare\.com$/.test(url.hostname)||url.pathname!=='/')throw new Error('invalid');
     game.src=url.href;game.style.display='block';statusView.style.display='none';
-  }catch(error){message.textContent='游戏服务器暂未连接。请让房主在电脑上运行“启动公网联机.cmd”。本页将在 10 秒后重试。';timer=setTimeout(connect,10000);}
+  }catch(error){message.textContent='游戏服务器暂未连接。请让房主在电脑上运行“启动公网联机.cmd”。本页将在 60 秒后重试。';timer=setTimeout(connect,60000);}
   finally{pending=false;}
 }
 document.getElementById('retry').addEventListener('click',connect);connect();
